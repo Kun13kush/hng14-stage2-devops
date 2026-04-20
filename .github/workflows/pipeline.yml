@@ -37,7 +37,7 @@ jobs:
       - name: Lint JavaScript
         run: |
           cd frontend
-          npx eslint app.js --env node --parser-options=ecmaVersion:2020
+          npx eslint app.js
 
       - name: Lint Dockerfiles
         uses: hadolint/hadolint-action@v3.1.0
