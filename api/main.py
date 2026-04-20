@@ -7,6 +7,7 @@ app = FastAPI()
 
 redis_pool = None
 
+
 def get_redis():
     global redis_pool
     if redis_pool is None:
@@ -15,6 +16,7 @@ def get_redis():
             port=int(os.environ.get("REDIS_PORT", 6379))
         )
     return redis.Redis(connection_pool=redis_pool)
+
 
 @app.post("/jobs")
 def create_job(r=Depends(get_redis)):
@@ -25,6 +27,7 @@ def create_job(r=Depends(get_redis)):
     r.lpush(queue_name, job_id)
     return {"job_id": job_id}
 
+
 @app.get("/jobs/{job_id}")
 def get_job(job_id: str, r=Depends(get_redis)):
     status = r.hget(f"job:{job_id}", "status")
@@ -33,6 +36,7 @@ def get_job(job_id: str, r=Depends(get_redis)):
     if isinstance(status, bytes):
         status = status.decode()
     return {"job_id": job_id, "status": status}
+
 
 @app.get("/health")
 def health():

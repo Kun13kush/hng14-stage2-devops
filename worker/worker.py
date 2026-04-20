@@ -3,6 +3,7 @@ import time
 import os
 import signal
 
+
 def get_redis():
     while True:
         try:
@@ -16,8 +17,10 @@ def get_redis():
             print("Redis not ready, retrying in 2s...")
             time.sleep(2)
 
+
 r = get_redis()
 queue_name = os.environ.get("QUEUE_NAME", "jobs_queue")
+
 
 def process_job(job_id):
     print(f"Processing job {job_id}")
@@ -25,9 +28,11 @@ def process_job(job_id):
     r.hset(f"job:{job_id}", "status", "completed")
     print(f"Done: {job_id}")
 
+
 def handle_shutdown(signum, frame):
     print("Shutting down worker...")
     exit(0)
+
 
 signal.signal(signal.SIGTERM, handle_shutdown)
 signal.signal(signal.SIGINT, handle_shutdown)
