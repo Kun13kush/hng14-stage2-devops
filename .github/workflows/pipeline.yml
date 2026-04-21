@@ -146,6 +146,18 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.70.0
 
+      - name: Show critical vulnerabilities
+        run: |
+          trivy image --skip-version-check --severity CRITICAL \
+            --format table --exit-code 0 \
+            localhost:5000/api:latest
+          trivy image --skip-version-check --severity CRITICAL \
+            --format table --exit-code 0 \
+            localhost:5000/worker:latest
+          trivy image --skip-version-check --severity CRITICAL \
+            --format table --exit-code 0 \
+            localhost:5000/frontend:latest
+
       - name: Scan API image
         run: |
           trivy image --skip-version-check --severity CRITICAL \
@@ -266,4 +278,3 @@ jobs:
               fi
             done
           ENDSSH
-EOF
