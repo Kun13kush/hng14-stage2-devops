@@ -292,4 +292,8 @@ jobs:
 
               docker compose up -d --no-deps --scale $SVC=1 $SVC
             done
+<<<<<<< HEAD
           EOF
+=======
+          ENDSSH
+>>>>>>> refs/remotes/origin/main
