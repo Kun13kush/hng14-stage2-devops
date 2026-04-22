@@ -2,23 +2,32 @@
 FROM python:3.12-slim AS builder
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip==24.0 && \
-    pip install --no-cache-dir -r requirements.txt --target=/install
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt --prefix=/install
 
 # Stage 2 — runtime
 FROM python:3.12-slim
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup --system appgroup && adduser --system --group appuser
+# Patch OS-level packages (resolves OpenSSL CVEs)
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy installed packages and worker file
-COPY --from=builder /install /usr/local/lib/python3.12/site-packages
+# Create non-root user
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+# Copy installed packages and worker
+COPY --from=builder /install /usr/local
 COPY worker.py .
+
+# Lock down ownership
+RUN chown -R appuser:appgroup /app
 
 USER appuser
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD python -c "import redis, os; r=redis.Redis(host=os.environ.get('REDIS_HOST','redis')); r.ping()" || exit 1
+  CMD python -c \
+    "import redis, os; redis.Redis(host=os.environ.get('REDIS_HOST','redis'), socket_connect_timeout=5).ping()" \
+    || exit 1
 
 CMD ["python", "worker.py"]

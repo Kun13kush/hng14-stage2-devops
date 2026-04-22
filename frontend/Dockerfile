@@ -8,13 +8,19 @@ RUN npm ci --only=production
 FROM node:20-alpine
 WORKDIR /app
 
+# Patch OS-level packages (catches OpenSSL and other CVEs at build time)
+RUN apk update && apk upgrade --no-cache
+
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy only what's needed
 COPY --from=builder /app/node_modules ./node_modules
 COPY app.js ./
-COPY views/index.html ./
+COPY views/ ./views/
+
+# Lock down file ownership
+RUN chown -R appuser:appgroup /app
 
 USER appuser
 
